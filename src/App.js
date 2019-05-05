@@ -55,7 +55,7 @@ class App extends React.Component {
       }
     })
   }
-
+//added comment
   addGame = (e) => {
     e.preventDefault();
     let tempList = this.state.games.slice();
