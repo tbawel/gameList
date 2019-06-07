@@ -1,11 +1,25 @@
 import React from 'react';
 import './App.css';
-// comment
+import Header from './components/Header';
+import {Route, Switch, withRouter} from 'react-router-dom';
+import Login from './components/Login';
+import Logout from './components/Logout';
+import GameList from './components/games/GameList';
+import Register from './components/Register';
+import Home from './components/Home';
+
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       idCounter: 5,
+      loggedIn: false,
+      users: [
+        {
+          email: 'a',
+          password: 'a'
+        }
+      ],
       games: [
         {
           id: 0,
@@ -121,7 +135,40 @@ handleEdit = (e, gameId) => {
     this.setState({ games: tempList, idCounter: this.state.idCounter + 1 });
   }
 
+  toggleLogin = (e) => {
+    this.setState({loggedIn: !this.state.loggedIn});
+  }
+
+  checkCredentials = (e, inUser, inPassword) => {
+    e.preventDefault();
+    let verified = false;
+    this.state.users.forEach(user => {
+      if(inUser === user.email) {
+        if(inPassword === user.password) {
+          verified = true;
+        }
+      }
+    });
+    if(verified === true){
+      this.toggleLogin();
+      this.props.history.push('/gameList');
+    }else{
+      alert('Invalid Username or password');
+    }
+  }
+
+  logout = (e) => {
+    e.preventDefault();
+    this.props.history.push('/logout');
+    this.toggleLogin();
+    setTimeout(() => this.props.history.push('/'), 3000);
+  }
+
   render() {
+    // if(this.state.justLoggedIn === true){
+    //   return <Redirect to='/GameList' />
+    // }
+    /*
     const gamesList = this.state.games.map((game) =>
       <li key={game.id}>{game.name} has a rating of {game.rating}/10
       <button onClick={(e) => this.handleEdit(e, game.id)}> Edit </button>
@@ -148,10 +195,11 @@ handleEdit = (e, gameId) => {
       )
       }
       </li>
-    );
+    );*/
 
     return (
       <div>
+        {/*
         <ul>{gamesList}</ul>
         <form onSubmit={(e) => this.addGame(e)}>
           <label>Add A Game: </label>
@@ -169,12 +217,19 @@ handleEdit = (e, gameId) => {
             value={this.state.newGame.rating}
             onChange={(e) => this.handleNewChange(e)} />
           <button type="submit">Add</button>
-        </form>
-
+        </form>*/}
+        <Header loggedIn={this.state.loggedIn} logout={(e) => this.logout(e)}/>
+        <Switch>
+          <Route exact path="/" component={Home} />
+          <Route path="/login" render={(props) => (<Login checkCredentials={(e, user, password) => this.checkCredentials(e, user, password)}/>)} />
+          <Route path="/gameList" render={(props) => (<GameList games={this.state.games} handleEdit={(e) => this.handleEdit(e)} handleDelete={(e) => this.handleDelete(e)} handleEditChange={(e) => this.handleEditChange(e)}/>)} />
+          <Route path="/register" component={Register} />
+          <Route path="/logout" component={Logout} />
+        </Switch>
       </div>
     );
   };
 }
 
-export default App;
+export default withRouter(App);
 
