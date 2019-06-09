@@ -31,3 +31,11 @@
     transform: rotate(360deg);
   }
 }
+
+.newGameForm {
+  background-color: #aaaaaa 
+}
+
+.spacedList {
+  margin: 1em 0em;
+}

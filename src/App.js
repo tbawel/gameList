@@ -1,12 +1,13 @@
 import React from 'react';
 import './App.css';
 import Header from './components/Header';
-import {Route, Switch, withRouter} from 'react-router-dom';
+import { Route, Switch, withRouter } from 'react-router-dom';
 import Login from './components/Login';
 import Logout from './components/Logout';
 import GameList from './components/games/GameList';
 import Register from './components/Register';
 import Home from './components/Home';
+import axios from 'axios'
 
 class App extends React.Component {
   constructor(props) {
@@ -21,98 +22,120 @@ class App extends React.Component {
         }
       ],
       games: [
-        {
-          id: 0,
-          name: "Black Ops 2",
-          rating: 7
-        },
-        {
-          id: 1,
-          name: "Seven Days to Die",
-          rating: 8
-        },
-        {
-          id: 2,
-          name: "Minecraft",
-          rating: 9
-        },
-        {
-          id: 3,
-          name: "Shrek 2",
-          rating: 1
-        },
-        {
-          id: 4,
-          name: "Halo",
-          rating: 7.5
-        }
+        // {
+        //   id: 0,
+        //   name: "Black Ops 2",
+        //   rating: 7
+        // },
+        // {
+        //   id: 1,
+        //   name: "Seven Days to Die",
+        //   rating: 8
+        // },
+        // {
+        //   id: 2,
+        //   name: "Minecraft",
+        //   rating: 9
+        // },
+        // {
+        //   id: 3,
+        //   name: "Shrek 2",
+        //   rating: 1
+        // },
+        // {
+        //   id: 4,
+        //   name: "Halo",
+        //   rating: 7.5
+        // }
       ],
-      newGame: {
-        name: "",
-        rating: ""
-      },
-      editGame: {
-        name: "",
-        rating: ""
-      }
+      editName: "",
+      editRating: "",
+      newName: "",
+      newRating: ""
     }
   };
 
-handleEdit = (e, gameId) => {
-  let newGames = this.state.games.map(game => {
-    if (game.id === gameId) {
-      this.setState({editGame: {
-        name: game.name,
-        rating: game.rating
+  componentDidMount() {
+    axios.get('/games')
+      .then((response) => {
+        console.log(response.data)
+        let newGames = response.data.map((game) => {
+          return {
+            id: game.id,
+            name: game.name,
+            rating: game.rating,
+            developer: game.developer.name
+          }
+        })
+        this.setState({ games: newGames })
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+      .finally(() => {
+      })
+  }
+
+  handleEditToggle = (e, gameId) => {
+    let tempName = '';
+    let tempRating = '';
+    let newGames = this.state.games.map(game => {
+      if (game.id === gameId) {
+        tempName = game.name;
+        tempRating = game.rating;
+        return {
+          ...game,
+          edit: !game.edit
+        }
+      } else {
+        return {
+          ...game,
+          edit: false
+        };
       }
-    })
-      return {
-        ...game,
-        edit: !game.edit
-      };
-    } else {
-      return {
-        ...game,
-        edit: false
-      };
-    }
-  });
-  this.setState({
-    games: newGames
-  });
-};
+    });
+    this.setState({
+      games: newGames,
+      editName: tempName,
+      editRating: tempRating
+    });
+  };
 
   handleDelete = (e, gameId) => {
+    axios.delete(`/games/${gameId}`)
     let newGames = this.state.games.filter((game) => (game.id !== gameId));
     this.setState({ games: newGames });
   }
 
-  handleNewChange = e => {
-    this.setState({
-      newGame: {
-        ...this.state.newGame,
-        [e.target.name]: e.target.value
-      }
-    });
-  };
+  // handleNewChange = e => {
+  //   this.setState({
+  //     newGame: {
+  //       ...this.state.newGame,
+  //       [e.target.name]: e.target.value
+  //     }
+  //   });
+  // };
 
-  handleEditChange = e => {
+  handleChange = e => {
     this.setState({
-      editGame: {
-        ...this.state.editGame,
-        [e.target.name]: e.target.value
-      }
+      // editGame: {
+      //   ...this.state.editGame,
+      //   [e.target.name]: e.target.value
+      // }
+      [e.target.name]: e.target.value
     });
   };
 
   handleUpdate = (e, gameId) => {
     e.preventDefault();
+    let updateGame = { name: this.state.editName, rating: this.state.editRating }
+    axios.put(`/games/${gameId}`, updateGame)
     let editGames = this.state.games.map(game => {
-      if(game.id === gameId) {
+      if (game.id === gameId) {
         return {
           ...game,
-          name: this.state.editGame.name,
-          rating: this.state.editGame.rating,
+          name: this.state.editName,
+          rating: this.state.editRating,
           edit: false
         };
       } else {
@@ -129,30 +152,32 @@ handleEdit = (e, gameId) => {
 
   addGame = (e) => {
     e.preventDefault();
-    let tempList = this.state.games.slice();
-    tempList.push(this.state.newGame);
-    tempList[tempList.length - 1].id = this.state.idCounter;
-    this.setState({ games: tempList, idCounter: this.state.idCounter + 1 });
+    // let newGame = this.state.newGame
+    // axios.post('/games', newGame)
+    // let tempList = this.state.games.slice();
+    // tempList.push(this.state.newGame);
+    // tempList[tempList.length - 1].id = this.state.idCounter;
+    // this.setState({ games: tempList, idCounter: this.state.idCounter + 1 });
   }
 
   toggleLogin = (e) => {
-    this.setState({loggedIn: !this.state.loggedIn});
+    this.setState({ loggedIn: !this.state.loggedIn });
   }
 
   checkCredentials = (e, inUser, inPassword) => {
     e.preventDefault();
     let verified = false;
     this.state.users.forEach(user => {
-      if(inUser === user.email) {
-        if(inPassword === user.password) {
+      if (inUser === user.email) {
+        if (inPassword === user.password) {
           verified = true;
         }
       }
     });
-    if(verified === true){
+    if (verified === true) {
       this.toggleLogin();
       this.props.history.push('/gameList');
-    }else{
+    } else {
       alert('Invalid Username or password');
     }
   }
@@ -218,11 +243,11 @@ handleEdit = (e, gameId) => {
             onChange={(e) => this.handleNewChange(e)} />
           <button type="submit">Add</button>
         </form>*/}
-        <Header loggedIn={this.state.loggedIn} logout={(e) => this.logout(e)}/>
+        <Header loggedIn={this.state.loggedIn} logout={(e) => this.logout(e)} />
         <Switch>
           <Route exact path="/" component={Home} />
-          <Route path="/login" render={(props) => (<Login checkCredentials={(e, user, password) => this.checkCredentials(e, user, password)}/>)} />
-          <Route path="/gameList" render={(props) => (<GameList games={this.state.games} handleEdit={(e) => this.handleEdit(e)} handleDelete={(e) => this.handleDelete(e)} handleEditChange={(e) => this.handleEditChange(e)}/>)} />
+          <Route path="/login" render={(props) => (<Login checkCredentials={(e, user, password) => this.checkCredentials(e, user, password)} />)} />
+          <Route path="/gameList" render={(props) => (<GameList games={this.state.games} handleEditToggle={(e, gameId) => this.handleEditToggle(e, gameId)} handleDelete={(e, gameId) => this.handleDelete(e, gameId)} handleChange={(e, gameId) => this.handleChange(e, gameId)} editName={this.state.editName} editRating={this.state.editRating} handleUpdate={(e, gameId) => this.handleUpdate(e, gameId)} addGame={(e) => this.addGame(e)} newName={this.state.newName} newRating={this.state.newRating} />)} />
           <Route path="/register" component={Register} />
           <Route path="/logout" component={Logout} />
         </Switch>
