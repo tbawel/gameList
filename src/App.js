@@ -48,6 +48,10 @@ class App extends React.Component {
         //   rating: 7.5
         // }
       ],
+      editGame: {
+        name: "",
+        rating: ""
+      },
       editName: "",
       editRating: "",
       newName: "",
@@ -64,13 +68,15 @@ class App extends React.Component {
             id: game.id,
             name: game.name,
             rating: game.rating,
-            developer: game.developer.name
+            developer: game.developer ? game.developer.name : "Indie Developer"
           }
         })
+        //console.log("Look here at these new games: !", newGames);
         this.setState({ games: newGames })
+        //debugger;
       })
       .catch((error) => {
-        console.log(error)
+        console.error(error);
       })
       .finally(() => {
       })
